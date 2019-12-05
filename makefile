@@ -4,14 +4,17 @@ else
 	CC = gcc
 endif
 
-all: main.o parse_input.o
-	$(CC) -o output main.o parse_input.o
+all: main.o parse_input.o runner.o
+	$(CC) -o output main.o parse_input.o runner.o
 
 main.o: main.c parse_input.h
 	$(CC) -c main.c
 
 parse_input.o: parse_input.c
 	$(CC) -c parse_input.c
+
+runner.o: runner.c
+	$(CC) -c runner.c
 
 run:
 	./output
