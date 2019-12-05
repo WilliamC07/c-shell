@@ -40,7 +40,8 @@ char **tokenize(char *command) {
     char *token;
     int tokens_read = 0;
     // Use calloc so it automatically includes the end of string character.
-    char **tokens = calloc(sizeof(char *), num_args(command));
+    // Add one since we need a NULL pointer to signify there aren't any more parameters in execvp
+    char **tokens = calloc(sizeof(char *), num_args(command) + 1);
 
     while (1) {
         token = strsep(&current, " ");
