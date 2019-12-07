@@ -64,21 +64,20 @@ char **get_commands(char *input){
         if(input[index] == '"' && index != 0 && input[index - 1] != '\\') {
             // User entered a quote (handles escaped quote \"
             in_quotes = !in_quotes;
-        }else if(!in_quotes && input[index] == ';'){
+        }else if(!in_quotes && (input[index] == ';' || input[index] == '\0')){
             // End of command
             commands[command_counter++] = input + command_start_index;
             // Move the start to the next command
             command_start_index = index + 1;  // Skip over the semicolon
-            input[index] = '\0';  // Signal it is the end of the command
-        }else if(!in_quotes && input[index] == '\0'){
-            // End of input, which also means end of the last command
-            // End of command
-            commands[command_counter] = input + command_start_index;
-            break;
+
+            if(input[index] == '\0'){
+                // End of input (also the end of the last command)
+                return commands;
+            }else{
+                input[index] = '\0';
+            }
         }
     }
-
-    return commands;
 }
 
 /**

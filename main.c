@@ -12,7 +12,7 @@ void test(){
 //    char ** arguments = tokenize(ls_command);
 //    execvp(arguments[0], arguments);
 
-    char input[] = "echo 1; echo 2 ; echo -e \";\" ;echo -e \"\\x1B[34mApples\"";
+    char input[] = "echo 1; echo 2 ; echo -e \"; echo \"Apple\"\" ;echo -e \"\\x1B[34m ;;Apples \"";
     char ** commands = get_commands(input);
     for(int i = 0; i < 4; i++){
         printf("Command: %s\n", commands[i]);
