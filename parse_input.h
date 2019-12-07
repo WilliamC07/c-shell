@@ -1,5 +1,5 @@
 void sterialize_input(char *input);
 
-int num_args(char *command);
+char **get_commands(char *input);
 
 char **tokenize(char *command);
