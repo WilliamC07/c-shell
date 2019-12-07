@@ -28,15 +28,6 @@ int count_occurance(char *string, char character){
     return counter;
 }
 
-int num_args(char *command){
-    if(command == NULL || command[0] == '\0'){
-        return 0;
-    }
-
-    // Add one since spaces comes after end of argument
-    return count_occurance(command, ' ') + 1;
-}
-
 /**
  * Will separate the input into an array of commands (separated by ';').
  * This is NOT a reimplementation of string.h strsep.
@@ -77,33 +68,5 @@ char **get_commands(char *input){
                 input[index] = '\0';
             }
         }
-    }
-}
-
-/**
- * Parses a command into separate parts divided into name of program and arguments passed in.
- * Delimiter of " "
- * Assuming that the length of the command is <1000 characters and <20 command line argument.
- *
- * @param input
- * @return
- */
-char **tokenize(char *command) {
-    char *current = command;
-    char *token;
-    int tokens_read = 0;
-    // Use calloc so it automatically includes the end of string character.
-    // Add one since we need a NULL pointer to signify there aren't any more parameters in execvp
-    char **tokens = calloc(sizeof(char *), num_args(command) + 1);
-
-    while (1) {
-        token = strsep(&current, " ");
-        if (token == NULL) {
-            return tokens;
-        }
-        // Use calloc so it automatically includes the end of string character.
-        *(tokens + tokens_read) = calloc(1000, sizeof(char));
-        strcpy(tokens[tokens_read], token);
-        tokens_read++;
     }
 }
