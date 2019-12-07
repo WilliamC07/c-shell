@@ -39,7 +39,7 @@ int num_args(char *command){
 
 /**
  * Will separate the input into an array of commands (separated by ';').
- * This is a worse implementation of string.h strsep that handles quotes.
+ * This is NOT a reimplementation of string.h strsep.
  * For example, the command:
  *  echo -e ";"; echo -e "\x1BC34 Apples"
  *
