@@ -1,5 +1,5 @@
 void sterialize_input(char *input);
 
-char **split_handle_quotes(char *string, char delimiter);
+char **get_commands(char *input);
 
 char **tokenize(char *command);
