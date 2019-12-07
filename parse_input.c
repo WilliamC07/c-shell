@@ -38,43 +38,39 @@ int num_args(char *command){
 }
 
 /**
- * Will separate the input into an array of commands (separated by ';').
- * This is a worse implementation of string.h strsep that handles quotes.
- * For example, the command:
- *  echo -e ";"; echo -e "\x1BC34 Apples"
+ * This is NOT a reimplementation of string.h strsep.
+ * This divides up the given string and separates it by replacing each occurrence of the delimiter that is not surrounded by quotes with a '\0'.
+ * This assumes the quotes are balanced. Each separated part is called a block.
  *
- * Will separate into the two commands:
- *  1. echo -e ";"
- *  2. echo -e "\x1BC34 Apples"
- *
- * @param input
- * @return
+ * @param input Will be modified
+ * @param delimiter
+ * @return Array of pointer to each block.
  */
-char **get_commands(char *input){
+char **split_handle_quotes(char *string, char delimiter){
     int index = 0;
     // This will result in extra space if there is a semicolon in quotes
     // Add 2: to make last pointer NULL to show there are no more commands and
     //        at least two space if the user enters one command (no semicolon)
-    char **commands = calloc(count_occurance(input, ';') + 2, sizeof(char *));
+    char **commands = calloc(count_occurance(string, delimiter) + 2, sizeof(char *));
     int command_start_index = 0;  // The index of input in which the current command starts at
     int command_counter = 0;  // Keep track of how many commands were given so far
     bool in_quotes = false;
 
     for(;; index++){
-        if(input[index] == '"' && index != 0 && input[index - 1] != '\\') {
+        if(string[index] == '"' && index != 0 && string[index - 1] != '\\') {
             // User entered a quote (handles escaped quote \"
             in_quotes = !in_quotes;
-        }else if(!in_quotes && (input[index] == ';' || input[index] == '\0')){
+        }else if(!in_quotes && (string[index] == delimiter || string[index] == '\0')){
             // End of command
-            commands[command_counter++] = input + command_start_index;
+            commands[command_counter++] = string + command_start_index;
             // Move the start to the next command
             command_start_index = index + 1;  // Skip over the semicolon
 
-            if(input[index] == '\0'){
+            if(string[index] == '\0'){
                 // End of input (also the end of the last command)
                 return commands;
             }else{
-                input[index] = '\0';
+                string[index] = '\0';
             }
         }
     }
