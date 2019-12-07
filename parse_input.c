@@ -56,31 +56,51 @@ void insert_character(char *destination, char insert_char, int position){
  * @return
  */
 char **get_commands(char *input){
-    int index = 0;
     // This will result in extra space if there is a semicolon in quotes
     // Add 2: to make last pointer NULL to show there are no more commands and
     //        at least two space if the user enters one command (no semicolon)
     char **commands = calloc(count_occurance(input, ';') + 2, sizeof(char *));
-    int command_start_index = 0;  // The index of input in which the current command starts at
+    int command_start_index;  // The index of input in which the current command starts at
     int command_counter = 0;  // Keep track of how many commands were given so far
     bool in_quotes = false;
 
-    for(;; index++){
+    // Find the index of the start of the first command
+    // In bash and zsh (not sure about sh), leading space means don't store in history. This shell doesn't implement this feature
+    int index = 0;
+    while(input[index] == ' ' || input[index] == ';'){
+        index++;
+    }
+    command_start_index = index;
+
+    while(true){
         if(input[index] == '"' && index != 0 && input[index - 1] != '\\') {
-            // User entered a quote (handles escaped quote \"
+            // The user entered a quote but not an escaped quote (\")
+
             in_quotes = !in_quotes;
+            index++;
         }else if(!in_quotes && (input[index] == ';' || input[index] == '\0')){
-            // End of command
+            // The user finished entering a command
+
+            // Store the start of the current command
             commands[command_counter++] = input + command_start_index;
-            // Move the start to the next command
-            command_start_index = index + 1;  // Skip over the semicolon
 
             if(input[index] == '\0'){
                 // End of input (also the end of the last command)
                 return commands;
             }else{
+                // End the command
                 input[index] = '\0';
+                // Move the start to the next command
+                index++;
+                // Do not have the next command lead with semicolon or spaces
+                // Prevents us from thinking a space or a semicolon is a command
+                while(input[index] == ';' || input[index] == ' '){
+                    index++;
+                }
+                command_start_index = index;
             }
         }
+
+        index++;
     }
 }
