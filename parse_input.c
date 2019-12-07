@@ -104,3 +104,29 @@ char **get_commands(char *input){
         index++;
     }
 }
+
+/**
+ * Commands do not include '<' '>' or '|'.
+ * Each command argument has a max length of 500 (including end of string character)
+ * @param command
+ * @return
+ */
+char ** tokenize_command(char *command){
+    // Spaces separate command arguments
+    // Add 2 since last element in array must be NULL to denote end of arguments and
+    // there is at least 1 argument for every command
+    char ** tokens = calloc(count_occurance(command, ' ' + 2), sizeof(char *));
+    char *current = command;
+    int tokens_read = 0;
+
+    while (1) {
+        char *token = strsep(&current, " ");
+        if (token == NULL) {
+            return tokens;
+        }
+        // Use calloc so it automatically includes the end of string character.
+        *(tokens + tokens_read) = calloc(500, sizeof(char));
+        strcpy(tokens[tokens_read], token);
+        tokens_read++;
+    }
+}
