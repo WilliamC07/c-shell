@@ -29,6 +29,20 @@ int count_occurance(char *string, char character){
 }
 
 /**
+ * Inserts the given character into the string at the given index. This pushes all subsequent characters over.
+ * The destination space should have all spaces after the '\0' filled with '\0' and have enough space to insert into.
+ */
+void insert_character(char *destination, char insert_char, int position){
+    // To shift over, we will move backwards
+    int index = strlen(destination);
+    for(; index > position; index--){
+        destination[index] = destination[index - 1];
+    }
+
+    destination[position] = insert_char;
+}
+
+/**
  * Will separate the input into an array of commands (separated by ';').
  * This is NOT a reimplementation of string.h strsep.
  * For example, the command:
