@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include "parse_input.h"
 #include "runner.h"
+#include <stdlib.h>
 
 void test(){
 //    char ls_command[] = "echo 1; echo 2 ; echo 3;echo 4;echo 5;";
@@ -13,6 +14,7 @@ void test(){
 //    execvp(arguments[0], arguments);
 
     char input[] = "echo 1;echo 2 ; echo -e \"; echo Apple\" ;echo -e \"\\x1B[34m ;;Apples \"";
+//    char input[] = "echo -e \"\\x1B[34m ;;Apples \"";
     char ** commands = get_commands(input);
     for(int i = 0; i < 4; i++){
         printf("Command: .%s.\n", commands[i]);
@@ -22,7 +24,9 @@ void test(){
             printf("token: %s\n", tokens[t_i]);
             t_i++;
         }
+        free(tokens);
     }
+    free(commands);
 }
 
 int main() {

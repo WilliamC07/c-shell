@@ -73,10 +73,11 @@ char **get_commands(char *input){
     command_start_index = index;
 
     while(true){
-        if(input[index] == '"' && (index == 0 ? true : input[index - 1] != '\\')) {
-            // The user entered a quote but not an escaped quote (\")
-
-            in_quotes = !in_quotes;
+        if(input[index] == '"') {
+            if(index != 0 && input[index - 1] != '\\'){
+                // The user entered a quote but not an escaped quote (\")
+                in_quotes = !in_quotes;
+            }
             index++;
         }else if(!in_quotes && (input[index] == ';' || input[index] == '\0')){
             // The user finished entering a command
@@ -105,27 +106,22 @@ char **get_commands(char *input){
                 }
                 command_start_index = index;
             }
+        }else{
+            index++;
         }
-
-        index++;
     }
 }
 
 /**
  * Commands do not include '<' '>' or '|'.
- * Each command argument has a max length of 500 (including end of string character)
  * @param command
  * @return
  */
 char ** tokenize_command(char *command){
-    printf("\n\n func stat\n\n");
     // Spaces separate command arguments. This may give more space than needed if there are spaces surrounded by quotes.
     // Add 2 since last element in array must be NULL to denote end of arguments and
     // there is at least 1 argument for every command
-    printf("-------%s------\n", command);
-    printf("Size %d\n", sizeof(char *));
     char ** tokens = calloc(count_occurance(command, ' ') + 2, sizeof(char *));
-    printf("\n\nAllocated\n\n");
     // The index of command in which the current argument starts at
     // The command is guaranteed to not start with a space due to the get_commands(char *) implementation
     int token_start_index = 0;
@@ -133,13 +129,12 @@ char ** tokenize_command(char *command){
     bool in_quotes = false;
     int index = 0;
 
-    printf("\n\nEntering loop\n\n");
-
     while(true){
-        if(command[index] == '"' && (index == 0 ? true : command[index - 1] != '\\')) {
-            // The user entered a quote but not an escaped quote (\")
-
-            in_quotes = !in_quotes;
+        if(command[index] == '"') {
+            if(index != 0 && command[index - 1] != '\\'){
+                // The user entered a quote but not an escaped quote (\")
+                in_quotes = !in_quotes;
+            }
             index++;
         }else if(!in_quotes && (command[index] == ' ' || command[index] == '\0')){
             // The user finished entering an argument
@@ -163,7 +158,8 @@ char ** tokenize_command(char *command){
                 }
                 token_start_index = index;
             }
+        }else{
+            index++;
         }
-        index++;
     }
 }
