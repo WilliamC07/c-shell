@@ -134,6 +134,13 @@ char ** tokenize_command(char *command){
         if(command[index] == '"') {
             if(index != 0 && command[index - 1] != '\\'){
                 // The user entered a quote but not an escaped quote (\")
+
+                // Remove the start and end quote character because that should not be printed
+                if(in_quotes){
+                    command[index] = '\0';
+                }else{
+                    token_start_index = index + 1;
+                }
                 in_quotes = !in_quotes;
             }
             index++;
