@@ -19,7 +19,7 @@ int count_occurance(char *string, char character){
     }
 
     int counter = 0;
-    for(int index = 0; string[index] != NULL; index++){
+    for(int index = 0; string[index] != '\0'; index++){
         if(string[index] == character){
             counter++;
         }
@@ -73,7 +73,7 @@ char **get_commands(char *input){
     command_start_index = index;
 
     while(true){
-        if(input[index] == '"' && index != 0 && input[index - 1] != '\\') {
+        if(input[index] == '"' && (index == 0 ? true : input[index - 1] != '\\')) {
             // The user entered a quote but not an escaped quote (\")
 
             in_quotes = !in_quotes;
@@ -90,7 +90,13 @@ char **get_commands(char *input){
             }else{
                 // End the command
                 input[index] = '\0';
-                // Move the start to the next command
+                // make sure the command does not have trailing spaces
+                int end_index = index;
+                while(input[--end_index] == ' '){
+                    input[end_index] = '\0';
+                }
+
+                // Move the index to the next command
                 index++;
                 // Do not have the next command lead with semicolon or spaces
                 // Prevents us from thinking a space or a semicolon is a command
@@ -112,21 +118,52 @@ char **get_commands(char *input){
  * @return
  */
 char ** tokenize_command(char *command){
-    // Spaces separate command arguments
+    printf("\n\n func stat\n\n");
+    // Spaces separate command arguments. This may give more space than needed if there are spaces surrounded by quotes.
     // Add 2 since last element in array must be NULL to denote end of arguments and
     // there is at least 1 argument for every command
-    char ** tokens = calloc(count_occurance(command, ' ' + 2), sizeof(char *));
-    char *current = command;
-    int tokens_read = 0;
+    printf("-------%s------\n", command);
+    printf("Size %d\n", sizeof(char *));
+    char ** tokens = calloc(count_occurance(command, ' ') + 2, sizeof(char *));
+    printf("\n\nAllocated\n\n");
+    // The index of command in which the current argument starts at
+    // The command is guaranteed to not start with a space due to the get_commands(char *) implementation
+    int token_start_index = 0;
+    int token_counter = 0;  // Keep track of how many arguments were given so far
+    bool in_quotes = false;
+    int index = 0;
 
-    while (1) {
-        char *token = strsep(&current, " ");
-        if (token == NULL) {
-            return tokens;
+    printf("\n\nEntering loop\n\n");
+
+    while(true){
+        if(command[index] == '"' && (index == 0 ? true : command[index - 1] != '\\')) {
+            // The user entered a quote but not an escaped quote (\")
+
+            in_quotes = !in_quotes;
+            index++;
+        }else if(!in_quotes && (command[index] == ' ' || command[index] == '\0')){
+            // The user finished entering an argument
+
+            // Store the start of the current token
+            tokens[token_counter++] = command + token_start_index;
+
+            if(command[index] == '\0'){
+                tokens[token_counter] = NULL;
+                return tokens;
+            }else{
+                // end the token
+                command[index] = '\0';
+
+                // Move the index to the next token (moving past the space)
+                index++;
+
+                // Do not have the next token lead with spaces
+                while(command[index] == ' '){
+                    index++;
+                }
+                token_start_index = index;
+            }
         }
-        // Use calloc so it automatically includes the end of string character.
-        *(tokens + tokens_read) = calloc(500, sizeof(char));
-        strcpy(tokens[tokens_read], token);
-        tokens_read++;
+        index++;
     }
 }
