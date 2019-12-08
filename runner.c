@@ -33,6 +33,7 @@ void run_commands(char **commands){
         char *command = commands[command_index];
         char **tokens = tokenize_command(command);
         run_command(tokens);
+        free(tokens);
         command_index++;
     }
 }
