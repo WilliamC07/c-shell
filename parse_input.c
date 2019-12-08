@@ -13,12 +13,12 @@ void sterialize_input(char *input) {
     input[(strchr(input, '\n') - input)] = '\0';
 }
 
-int count_occurance(char *string, char character){
+unsigned int count_occurance(char *string, char character){
     if(string == NULL || string[0] == '\0'){
         return 0;
     }
 
-    int counter = 0;
+    unsigned int counter = 0;
     for(int index = 0; string[index] != '\0'; index++){
         if(string[index] == character){
             counter++;
@@ -26,6 +26,58 @@ int count_occurance(char *string, char character){
     }
 
     return counter;
+}
+
+/**
+ * If the user enters something in quotes:
+ * 1. The leading and trailing quotes need to be removed.
+ * 2. Escaped quotes (\") needs to be converted to just (")
+ * @param string
+ */
+char *parse_token(char *string){
+    unsigned int original_size = strlen(string);
+
+    // The only token we need to parse are those starting with quotes.
+    // The shell will only deal with those.
+    // TODO: Maybe replace "~" with home and add environment variables. Probably don't have time for this
+    if('\0' == string[0] || !(string[0] == '"' && string[original_size - 1] == '"')){
+        char *copied = calloc(original_size + 1, sizeof(char));  // Add 1 for end of line character
+        strcpy(copied, string);
+        return copied;
+    }
+
+    unsigned int number_escaped_quotes = 0;
+
+    // count the number of escaped quotes
+    // original_size - 1 because the last two characters cannot be an escaped quote (or else the string is malformed)
+    for(int i = 0; i < original_size - 1; i++){
+        if(string[i] == '"' && string[i - 1] == '\\'){
+            number_escaped_quotes++;
+        }
+    }
+
+    // Minus two for the start and end quote
+    // Minus number_escaped_quotes since those will become just quotes (\" -> ")
+    // Add one for end of line character
+    // calloc so it automatically gives us the end of string character
+    char *new_string = calloc(original_size - 2 - number_escaped_quotes + 1, sizeof(char));
+
+    // Copy over content
+    int new_index = 0;  // Index of new_string. Start at 1 to skip first double quote
+    int old_index = 1;  // Index of the original_string
+    // original_size - 1 to skip last double quote
+    for(; old_index < original_size - 1; old_index++, new_index++){
+        // "old_index + 1 != original_size - 1" Deals with "\\" --> \ and not "\\" --> \"
+        if(string[old_index] == '\\' && string[old_index + 1] == '"' && old_index + 1 != original_size - 1){
+            // Skip over
+            old_index++;
+            new_string[new_index] = '"';
+        }else{
+            new_string[new_index] = string[old_index];
+        }
+    }
+
+    return new_string;
 }
 
 /**
@@ -134,23 +186,14 @@ char ** tokenize_command(char *command){
         if(command[index] == '"') {
             if(index != 0 && command[index - 1] != '\\'){
                 // The user entered a quote but not an escaped quote (\")
-
-                // Remove the start and end quote character because that should not be printed
-                if(in_quotes){
-                    command[index] = '\0';
-                }else{
-                    token_start_index = index + 1;
-                }
                 in_quotes = !in_quotes;
             }
             index++;
         }else if(!in_quotes && (command[index] == ' ' || command[index] == '\0')){
             // The user finished entering an argument
 
-            // Store the start of the current token
-            tokens[token_counter++] = command + token_start_index;
-
             if(command[index] == '\0'){
+                tokens[token_counter++] = parse_token(command + token_start_index);
                 tokens[token_counter] = NULL;
                 return tokens;
             }else{
@@ -164,6 +207,9 @@ char ** tokenize_command(char *command){
                 while(command[index] == ' '){
                     index++;
                 }
+
+                // Store the start of the current token
+                tokens[token_counter++] = parse_token(command + token_start_index);
                 token_start_index = index;
             }
         }else{

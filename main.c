@@ -5,8 +5,6 @@
 #include "runner.h"
 #include <stdlib.h>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-noreturn"
 void test(){
 //    char ls_command[] = "echo 1; echo 2 ; echo 3;echo 4;echo 5;";
 //    int arguments_num = num_args(ls_command);
