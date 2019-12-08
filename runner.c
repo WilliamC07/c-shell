@@ -35,6 +35,9 @@ void run_commands(char **commands){
         run_command(tokens);
 
         int token_index = 0;
+        while(tokens[token_index] != NULL){
+            free(tokens[token_index++]);
+        }
         free(tokens);
         command_index++;
     }
