@@ -13,7 +13,7 @@ main.o: main.c parse_input.h
 parse_input.o: parse_input.c
 	$(CC) -c parse_input.c
 
-runner.o: runner.c
+runner.o: runner.c parse_input.h
 	$(CC) -c runner.c
 
 run:

@@ -1,1 +1,1 @@
-void run_command(char **command);
+void run_commands(char **commands);

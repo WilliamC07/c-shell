@@ -5,6 +5,8 @@
 #include "runner.h"
 #include <stdlib.h>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
 void test(){
 //    char ls_command[] = "echo 1; echo 2 ; echo 3;echo 4;echo 5;";
 //    int arguments_num = num_args(ls_command);
@@ -13,37 +15,35 @@ void test(){
 //    char ** arguments = tokenize(ls_command);
 //    execvp(arguments[0], arguments);
 
-    char input[] = "echo 1;echo 2 ; echo -e \"; echo Apple\" ;echo -e \"\\x1B[34m ;;Apples \"";
+//    char input[] = "echo 1;echo 2 ; echo -e \"; echo Apple\" ;echo -e \"\\x1B[34m ;;Apples \"";
 //    char input[] = "echo -e \"\\x1B[34m ;;Apples \"";
-    char ** commands = get_commands(input);
-    for(int i = 0; i < 4; i++){
-        printf("Command: .%s.\n", commands[i]);
-        char ** tokens = tokenize_command(commands[i]);
-        int t_i = 0;
-        while(tokens[t_i] != NULL){
-            printf("token: %s\n", tokens[t_i]);
-            t_i++;
-        }
-        free(tokens);
-    }
-    free(commands);
+//    char ** commands = get_commands(input);
+//    for(int i = 0; i < 4; i++){
+//        printf("Command: .%s.\n", commands[i]);
+//        char ** tokens = tokenize_command(commands[i]);
+//        int t_i = 0;
+//        while(tokens[t_i] != NULL){
+//            printf("token: %s\n", tokens[t_i]);
+//            t_i++;
+//        }
+//        free(tokens);
+//    }
+//    free(commands);
 }
 
 int main() {
-    test();
-    return 0;
+//    test();
+//    return 0;
 
-//    while (1) {
-//        char input[500] = {'\0'};
-//
-//        printf("$ ");
-//        fgets(input, sizeof(input), stdin);
-//        sterialize_input(input);
-//        printf("You entered: %s \n", input);
-//
-//        run_command(tokenize(input));
-//        // Remove new line character of input
-//
-//    }
+    while (1) {
+        char input[500] = {'\0'};
+
+        printf("$ ");
+        fgets(input, sizeof(input), stdin);
+        sterialize_input(input);
+        char ** commands = get_commands(input);
+        run_commands(commands);
+        free(commands);
+    }
     return 0;
 }

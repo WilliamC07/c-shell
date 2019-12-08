@@ -87,6 +87,7 @@ char **get_commands(char *input){
 
             if(input[index] == '\0'){
                 // End of input (also the end of the last command)
+                commands[command_counter] = NULL;
                 return commands;
             }else{
                 // End the command
