@@ -4,6 +4,7 @@
 #include "parse_input.h"
 #include "runner.h"
 #include <stdlib.h>
+#include <limits.h>
 
 void test(){
 //    char ls_command[] = "echo 1; echo 2 ; echo 3;echo 4;echo 5;";
@@ -35,8 +36,11 @@ int main() {
 
     while (1) {
         char input[500] = {'\0'};
+        char cwd[PATH_MAX];
+        getcwd(cwd, sizeof(cwd));
+        printf("\e[34m%s\n", cwd);
+        printf("$\e[m ");
 
-        printf("$ ");
         fgets(input, sizeof(input), stdin);
         sterialize_input(input);
         char ** commands = get_commands(input);
