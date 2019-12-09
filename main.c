@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
 void test(){
 //    char ls_command[] = "echo 1; echo 2 ; echo 3;echo 4;echo 5;";
 //    int arguments_num = num_args(ls_command);
@@ -41,7 +43,12 @@ int main() {
         printf("\e[34m%s\n", cwd);
         printf("$\e[m ");
 
-        fgets(input, sizeof(input), stdin);
+        char result = fgets(input, sizeof(input), stdin);
+        if(result == NULL){
+            // Given End Of File (Control D)
+            printf("\n"); // Flush the dollar sign from previous printf
+            exit(0);
+        }
         sterialize_input(input);
         char ** commands = get_commands(input);
         run_commands(commands);
@@ -49,3 +56,4 @@ int main() {
     }
     return 0;
 }
+#pragma clang diagnostic pop
