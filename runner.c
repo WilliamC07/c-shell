@@ -18,7 +18,10 @@ void run_command(char **tokens){
         int pid = fork();
         if(pid == 0){
             // Child fork
-            execvp(tokens[0], tokens);
+            if(execvp(tokens[0], tokens) == -1){
+                printf("Error: %s\n", strerror(errno));
+                exit(1);
+            }
         }else{
             // Parent fork
             int status;
