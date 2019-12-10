@@ -5,6 +5,8 @@ In bash and zsh, starting a command with a space means it will not be stored in 
 
 The only escape character supported by strings is:
     \" -- Escapes quotes
+    \\ -- Escapes \
+    \n -- New line character
 All others will just show the "\" and following character (ex. "\t" --> "\t")
 
 Bugs:
@@ -12,8 +14,16 @@ Bugs:
 - ```exit``` ignores the subsequent arguments
 
 temp: some great edge caseing
-echo "\\" --> \\
-echo \t" --> \t"
-echo "\t --> "\t
-echo "\\t" --> \\t
-echo \""" --> \"""
+echo "\\" --> \\  
+echo \t" --> \t"  
+echo "\t --> "\t  
+echo "\\t" --> \\t  
+echo \""" --> \"""  
+
+Entered quotes must be balanced.  
+doing echo \" will print "\"" and not "  
+
+Special operation supports:  
+">", "<", and "|"  
+We do not support:  
+Anything not listed above like ">>" or "<<"

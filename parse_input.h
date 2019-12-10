@@ -1,7 +1,10 @@
-void sterialize_input(char *input);
+#include <sys/types.h>
+#include <stdbool.h>
 
-char *parse_token(char *string);
+void sterialize_input(char *input);
 
 char **get_commands(char *input);
 
 char ** tokenize_command(char *command);
+
+bool redirection_parameters_given(char ** tokens);
