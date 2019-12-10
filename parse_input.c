@@ -251,3 +251,32 @@ bool redirection_parameters_given(char ** tokens){
     }
     return true;
 }
+
+u_int find_token_index(char **tokens, char *needle){
+    u_int index = 0;
+    while(tokens[index] != NULL){
+        if(strcmp(tokens[index], needle) == 0){
+            return index;
+        }
+        index++;
+    }
+    return -1;
+}
+
+char * get_standard_output(char **tokens){
+    u_int output_token_index = find_token_index(tokens, ">");
+    if(output_token_index == -1){
+        // No ">"
+        return NULL;
+    }
+    return tokens[output_token_index + 1];
+}
+
+char * get_standard_input(char **tokens){
+    u_int output_token_index = find_token_index(tokens, ">");
+    if(output_token_index == -1){
+        // No ">"
+        return NULL;
+    }
+    return tokens[output_token_index + 1];
+}

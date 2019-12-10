@@ -4,6 +4,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <fcntl.h>
 #include "parse_input.h"
 
 void run_command(char **tokens){
@@ -14,8 +15,35 @@ void run_command(char **tokens){
         }
     }else{
         int pid = fork();
+
+        // Handle redirection
+        char *output = get_standard_output(tokens);
+        u_int fd_output = -1;
+        char *input = get_standard_input(tokens);
+        u_int fd_input = -1;
+
+        if(output != NULL){
+            fd_output = open(output, O_CREAT | O_WRONLY, 0644);
+        }
+
+        if(input != NULL){
+            fd_input = open(output, O_RDONLY);
+            if(errno){
+                printf("\e[31m%s\e[0m\n", strerror(errno));
+            }
+        }
+
         if(pid == 0){
             // Child fork
+
+            if(fd_input != -1){
+                dup2(fd_input, STDIN_FILENO);
+            }
+
+            if(fd_output != -1){
+                dup2(fd_output, STDOUT_FILENO);
+            }
+
             if(execvp(tokens[0], tokens) == -1){
                 printf("Error: %s\n", strerror(errno));
                 exit(1);

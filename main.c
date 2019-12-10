@@ -36,26 +36,35 @@ int main() {
 //    test();
 //    return 0;
 
-    while (1) {
-        char input[500] = {'\0'};
-        char cwd[PATH_MAX];
-        getcwd(cwd, sizeof(cwd));
-        printf("\e[34m%s\n", cwd);
-        printf("$\e[m ");
-
-        char result = fgets(input, sizeof(input), stdin);
-        if(result == NULL){
-            // Given End Of File (Control D)
-            printf("\n"); // Flush the dollar sign from previous printf
-            exit(0);
-        }
-        sterialize_input(input);
-        if(input[0] == '\0'){
-            continue;
-        }
-        char ** commands = get_commands(input);
-        run_commands(commands);
+    char *command = "echo asd > a.txt";
+    char ** tokens = tokenize_command(command);
+    u_int index = 0;
+    while (tokens[index] != NULL) {
+        printf("Index %u Token: %s\n", index, tokens[index]);
+        index++;
     }
+    printf("Direction to file %s\n", get_standard_output(tokens));
+
+//    while (1) {
+//        char input[500] = {'\0'};
+//        char cwd[PATH_MAX];
+//        getcwd(cwd, sizeof(cwd));
+//        printf("\e[34m%s\n", cwd);
+//        printf("$\e[m ");
+//
+//        char result = fgets(input, sizeof(input), stdin);
+//        if(result == NULL){
+//            // Given End Of File (Control D)
+//            printf("\n"); // Flush the dollar sign from previous printf
+//            exit(0);
+//        }
+//        sterialize_input(input);
+//        if(input[0] == '\0'){
+//            continue;
+//        }
+//        char ** commands = get_commands(input);
+//        run_commands(commands);
+//    }
     return 0;
 }
 #pragma clang diagnostic pop
