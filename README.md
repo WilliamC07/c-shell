@@ -5,6 +5,8 @@ In bash and zsh, starting a command with a space means it will not be stored in 
 
 The only escape character supported by strings is:
     \" -- Escapes quotes
+    \\ -- Escapes \
+    \n -- New line character
 All others will just show the "\" and following character (ex. "\t" --> "\t")
 
 Bugs:
