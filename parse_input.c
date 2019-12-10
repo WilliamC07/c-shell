@@ -29,81 +29,6 @@ unsigned int count_occurance(char *string, char character){
 }
 
 /**
- * If the user enters something in quotes:
- * 1. The leading and trailing quotes need to be removed.
- * 2. Escaped quotes (\") needs to be converted to just (")
- * @param string
- */
-char *parse_if_quotes(char *string){
-    unsigned int original_size = strlen(string);
-
-    // The only token we need to parse are those starting with quotes.
-    // The shell will only deal with those.
-    // TODO: Maybe replace "~" with home and add environment variables. Probably don't have time for this
-    if('\0' == string[0] || !(string[0] == '"' && string[original_size - 1] == '"')){
-        char *copied = calloc(original_size + 1, sizeof(char));  // Add 1 for end of line character
-        strcpy(copied, string);
-        return copied;
-    }
-
-    unsigned int number_escaped_quotes = 0;
-
-    // count the number of escaped quotes
-    // original_size - 1 because the last two characters cannot be an escaped quote (or else the string is malformed)
-    for(int i = 0; i < original_size - 1; i++){
-        if(string[i] == '"' && string[i - 1] == '\\'){
-            number_escaped_quotes++;
-        }
-    }
-
-    // Minus two for the start and end quote
-    // Minus number_escaped_quotes since those will become just quotes (\" -> ")
-    // Add one for end of line character
-    // calloc so it automatically gives us the end of string character
-    char *new_string = calloc(original_size - 2 - number_escaped_quotes + 1, sizeof(char));
-
-    // Copy over content
-    int new_index = 0;  // Index of new_string. Start at 1 to skip first double quote
-    int old_index = 1;  // Index of the original_string
-    // original_size - 1 to skip last double quote
-    for(; old_index < original_size - 1; old_index++, new_index++){
-        // "old_index + 1 != original_size - 1" Deals with "\\" --> \ and not "\\" --> \"
-        if(string[old_index] == '\\' && string[old_index + 1] == '"' && old_index + 1 != original_size - 1){
-            // Skip over
-            old_index++;
-            new_string[new_index] = '"';
-        }else{
-            new_string[new_index] = string[old_index];
-        }
-    }
-
-    return new_string;
-}
-
-/**
- * If the user enters a ">" or "<" or "|" that is not in quotes, it has to be its own token
- * @param string
- * @return
- */
-char *parse_if_operation(char *string){
-
-}
-
-/**
- * Inserts the given character into the string at the given index. This pushes all subsequent characters over.
- * The destination space should have all spaces after the '\0' filled with '\0' and have enough space to insert into.
- */
-void insert_character(char *destination, char insert_char, int position){
-    // To shift over, we will move backwards
-    int index = strlen(destination);
-    for(; index > position; index--){
-        destination[index] = destination[index - 1];
-    }
-
-    destination[position] = insert_char;
-}
-
-/**
  * Will separate the input into an array of commands (separated by ';').
  * This is NOT a reimplementation of string.h strsep.
  * For example, the command:
@@ -180,7 +105,7 @@ char **get_commands(char *input){
  * @param start_index Pointer to the start of the quote character
  * @return
  */
-char * parse_quote(char *quote_start){
+char * parse_quote_token(char *quote_start, u_int *char_parsed){
     // Find length of the quote
     // We will consider backslash followed by character as two character when it really should just be 1 character since
     // we don't handle every escape character case
@@ -188,6 +113,9 @@ char * parse_quote(char *quote_start){
     while(quote_start[length] != '"' || quote_start[length - 1] == '\\'){
         length++;
     }
+
+    // Need to tell the parser how many char we are reading off
+    *char_parsed = length;
 
     // Do not minus 1 from offset because we want to replace the ending quote with a end of string character
     char *token = calloc(length, sizeof(char));
@@ -221,6 +149,20 @@ char * parse_quote(char *quote_start){
     return token;
 }
 
+char * parse_regular_token(char *token_start, u_int *char_parsed){
+    u_int length = 1;
+    while(token_start[length] != ' ' && token_start[length] != '\0'){
+        length++;
+    }
+
+    *char_parsed = length;
+
+    // Add 1 for end of character string
+    char *token = calloc(length + 1, sizeof(char));
+    strncpy(token, token_start, length);
+    return token;
+}
+
 /**
  * Commands do not include '<' '>' or '|'.
  * @param command
@@ -232,68 +174,47 @@ char ** tokenize_command(char *command){
     // The following characters: ">", "<", and "|" are special operations and must be their own token
     u_int amount_tokens = count_occurance(command, ' ') + count_occurance(command, '<') + count_occurance(command, '>') + count_occurance(command, '|') + 2;
     char **tokens = calloc(amount_tokens, sizeof(char *));
-
-    int command_index = 0;
+    u_int token_index = 0;
+    u_int command_index = 0;
     while(command[command_index] != '\0'){
-        // Double quotes that are not escaped represents one token
-        if(command[command_index] == '"' && (command_index != 0 ? command[command_index] != '\\' : false)){
-            // User has entered a quote (but not an escaped quote), signaling the start of the quote token
-
+        switch(command[command_index]){
+            case '"': {
+                // Double quotes represents one token
+                // It is assumed to be balanced
+                // User has entered a quote (but not an escaped quote), signaling the start of the quote token
+                u_int char_parsed;
+                char *token = parse_quote_token(command + command_index, &char_parsed);
+                tokens[token_index++] = token;
+                // We parsed the entire token, so move index over
+                // Add 1 since we want to move past the ending double quote
+                command_index += char_parsed + 1;
+                break;
+            }
+            case ' ': {
+                // ignore white spaces
+                command_index++;
+                break;
+            }
+            case '>':
+            case '<':
+            case '|': {
+                // These are special operational character, so they need to be its own token
+                // Since we will check the 0th index of every token for the above special characters, we don't need '\0'
+                char *token = malloc(1);
+                token[0] = command[command_index];
+                tokens[token_index++] = token;
+                command_index++;
+                break;
+            }
+            default: {
+                // Regular strings goes up to the white space signaling end of the token
+                u_int char_parsed;
+                char *token = parse_regular_token(command + command_index, &char_parsed);
+                tokens[token_index++] = token;
+                // Add 1 since we move past the last read character
+                command_index += char_parsed;
+            }
         }
-
-        // ignore white spaces
-        if(command[command_index] == ' '){
-            command_index++;
-            continue;
-        }
-
-
-
-        command_index++;
     }
-
-//    // Spaces separate command arguments. This may give more space than needed if there are spaces surrounded by quotes.
-//    // there is at least 1 argument for every command
-//    char ** tokens = calloc(amount_tokens, sizeof(char *));
-//    // The index of command in which the current argument starts at
-//    // The command is guaranteed to not start with a space due to the get_commands(char *) implementation
-//    int token_start_index = 0;
-//    int token_counter = 0;  // Keep track of how many arguments were given so far
-//    bool in_quotes = false;
-//    int index = 0;
-//
-//    while(true){
-//        if(command[index] == '"') {
-//            if(index != 0 && command[index - 1] != '\\'){
-//                // The user entered a quote but not an escaped quote (\")
-//                in_quotes = !in_quotes;
-//            }
-//            index++;
-//        }else if(!in_quotes && (command[index] == ' ' || command[index] == '\0')){
-//            // The user finished entering an argument
-//
-//            if(command[index] == '\0'){
-//                tokens[token_counter++] = parse_if_quotes(command + token_start_index);
-//                tokens[token_counter] = NULL;
-//                return tokens;
-//            }else{
-//                // end the token
-//                command[index] = '\0';
-//
-//                // Move the index to the next token (moving past the space)
-//                index++;
-//
-//                // Do not have the next token lead with spaces
-//                while(command[index] == ' '){
-//                    index++;
-//                }
-//
-//                // Store the start of the current token
-//                tokens[token_counter++] = parse_if_quotes(command + token_start_index);
-//                token_start_index = index;
-//            }
-//        }else{
-//            index++;
-//        }
-//    }
+    return tokens;
 }

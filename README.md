@@ -12,8 +12,16 @@ Bugs:
 - ```exit``` ignores the subsequent arguments
 
 temp: some great edge caseing
-echo "\\" --> \\
-echo \t" --> \t"
-echo "\t --> "\t
-echo "\\t" --> \\t
-echo \""" --> \"""
+echo "\\" --> \\  
+echo \t" --> \t"  
+echo "\t --> "\t  
+echo "\\t" --> \\t  
+echo \""" --> \"""  
+
+Entered quotes must be balanced.  
+doing echo \" will print "\"" and not "  
+
+Special operation supports:  
+">", "<", and "|"  
+We do not support:  
+Anything not listed above like ">>" or "<<"
