@@ -34,7 +34,7 @@ unsigned int count_occurance(char *string, char character){
  * 2. Escaped quotes (\") needs to be converted to just (")
  * @param string
  */
-char *parse_token(char *string){
+char *parse_if_quotes(char *string){
     unsigned int original_size = strlen(string);
 
     // The only token we need to parse are those starting with quotes.
@@ -78,6 +78,15 @@ char *parse_token(char *string){
     }
 
     return new_string;
+}
+
+/**
+ * If the user enters a ">" or "<" or "|" that is not in quotes, it has to be its own token
+ * @param string
+ * @return
+ */
+char *parse_if_operation(char *string){
+
 }
 
 /**
@@ -166,54 +175,125 @@ char **get_commands(char *input){
 }
 
 /**
+ *
+ * @param command
+ * @param start_index Pointer to the start of the quote character
+ * @return
+ */
+char * parse_quote(char *quote_start){
+    // Find length of the quote
+    // We will consider backslash followed by character as two character when it really should just be 1 character since
+    // we don't handle every escape character case
+    u_int length = 1;
+    while(quote_start[length] != '"' || quote_start[length - 1] == '\\'){
+        length++;
+    }
+
+    // Do not minus 1 from offset because we want to replace the ending quote with a end of string character
+    char *token = calloc(length, sizeof(char));
+    u_int index_token = 0;
+    u_int offset = 1;
+    while(offset != length){
+        if(quote_start[offset] == '\\'){
+            switch(quote_start[offset + 1]){
+                case '\\':
+                    token[index_token++] = '\\';
+                    break;
+                case 'n':
+                    token[index_token++] = '\n';
+                    break;
+                case '"':
+                    token[index_token++] = '\"';
+                    break;
+                default:
+                    // Add 2 to the token index since we are adding both backslash and the following character
+                    token[index_token++] = quote_start[offset];
+                    token[index_token++] = quote_start[offset + 1];
+                    break;
+            }
+            // Skip the current backslash and next escaped character
+            offset += 2;
+        }else{
+            token[index_token++] = quote_start[offset];
+            offset++;
+        }
+    }
+    return token;
+}
+
+/**
  * Commands do not include '<' '>' or '|'.
  * @param command
  * @return
  */
 char ** tokenize_command(char *command){
-    // Spaces separate command arguments. This may give more space than needed if there are spaces surrounded by quotes.
-    // Add 2 since last element in array must be NULL to denote end of arguments and
-    // there is at least 1 argument for every command
-    char ** tokens = calloc(count_occurance(command, ' ') + 2, sizeof(char *));
-    // The index of command in which the current argument starts at
-    // The command is guaranteed to not start with a space due to the get_commands(char *) implementation
-    int token_start_index = 0;
-    int token_counter = 0;  // Keep track of how many arguments were given so far
-    bool in_quotes = false;
-    int index = 0;
+    // This may result in more tokens than there actually are because the characters we look for may be in quotes
+    // Add 2 since last element in array must be NULL to denote end of arguments and there must be at least 1 argument
+    // The following characters: ">", "<", and "|" are special operations and must be their own token
+    u_int amount_tokens = count_occurance(command, ' ') + count_occurance(command, '<') + count_occurance(command, '>') + count_occurance(command, '|') + 2;
+    char **tokens = calloc(amount_tokens, sizeof(char *));
 
-    while(true){
-        if(command[index] == '"') {
-            if(index != 0 && command[index - 1] != '\\'){
-                // The user entered a quote but not an escaped quote (\")
-                in_quotes = !in_quotes;
-            }
-            index++;
-        }else if(!in_quotes && (command[index] == ' ' || command[index] == '\0')){
-            // The user finished entering an argument
+    int command_index = 0;
+    while(command[command_index] != '\0'){
+        // Double quotes that are not escaped represents one token
+        if(command[command_index] == '"' && (command_index != 0 ? command[command_index] != '\\' : false)){
+            // User has entered a quote (but not an escaped quote), signaling the start of the quote token
 
-            if(command[index] == '\0'){
-                tokens[token_counter++] = parse_token(command + token_start_index);
-                tokens[token_counter] = NULL;
-                return tokens;
-            }else{
-                // end the token
-                command[index] = '\0';
-
-                // Move the index to the next token (moving past the space)
-                index++;
-
-                // Do not have the next token lead with spaces
-                while(command[index] == ' '){
-                    index++;
-                }
-
-                // Store the start of the current token
-                tokens[token_counter++] = parse_token(command + token_start_index);
-                token_start_index = index;
-            }
-        }else{
-            index++;
         }
+
+        // ignore white spaces
+        if(command[command_index] == ' '){
+            command_index++;
+            continue;
+        }
+
+
+
+        command_index++;
     }
+
+//    // Spaces separate command arguments. This may give more space than needed if there are spaces surrounded by quotes.
+//    // there is at least 1 argument for every command
+//    char ** tokens = calloc(amount_tokens, sizeof(char *));
+//    // The index of command in which the current argument starts at
+//    // The command is guaranteed to not start with a space due to the get_commands(char *) implementation
+//    int token_start_index = 0;
+//    int token_counter = 0;  // Keep track of how many arguments were given so far
+//    bool in_quotes = false;
+//    int index = 0;
+//
+//    while(true){
+//        if(command[index] == '"') {
+//            if(index != 0 && command[index - 1] != '\\'){
+//                // The user entered a quote but not an escaped quote (\")
+//                in_quotes = !in_quotes;
+//            }
+//            index++;
+//        }else if(!in_quotes && (command[index] == ' ' || command[index] == '\0')){
+//            // The user finished entering an argument
+//
+//            if(command[index] == '\0'){
+//                tokens[token_counter++] = parse_if_quotes(command + token_start_index);
+//                tokens[token_counter] = NULL;
+//                return tokens;
+//            }else{
+//                // end the token
+//                command[index] = '\0';
+//
+//                // Move the index to the next token (moving past the space)
+//                index++;
+//
+//                // Do not have the next token lead with spaces
+//                while(command[index] == ' '){
+//                    index++;
+//                }
+//
+//                // Store the start of the current token
+//                tokens[token_counter++] = parse_if_quotes(command + token_start_index);
+//                token_start_index = index;
+//            }
+//        }else{
+//            index++;
+//        }
+//    }
 }
