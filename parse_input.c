@@ -173,7 +173,7 @@ char ** tokenize_command(char *command){
     // Add 2 since last element in array must be NULL to denote end of arguments and there must be at least 1 argument
     // The following characters: ">", "<", and "|" are special operations and must be their own token
     u_int amount_tokens = count_occurance(command, ' ') + count_occurance(command, '<') + count_occurance(command, '>') + count_occurance(command, '|') + 2;
-    char **tokens = calloc(amount_tokens, sizeof(char *));
+    char **tokens = calloc(amount_tokens + 1, sizeof(char *));
     u_int token_index = 0;
     u_int command_index = 0;
     while(command[command_index] != '\0'){
