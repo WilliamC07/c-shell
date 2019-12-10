@@ -46,7 +46,9 @@ void run_commands(char **commands){
         }
 
         // Run all other commands except "exit"
-        run_command(tokens);
+        if(redirection_parameters_given(tokens)){
+            run_command(tokens);
+        }
 
         // Clean up token memory for every command
         int token_index = 0;

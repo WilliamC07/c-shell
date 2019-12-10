@@ -218,3 +218,19 @@ char ** tokenize_command(char *command){
     }
     return tokens;
 }
+
+bool redirection_parameters_given(char ** tokens){
+    int index = 0;
+    while(tokens[index] != NULL){
+        if(tokens[index][0] == '>' || tokens[index][0] == '<' || tokens[index][0] == '|'){
+            if(index == 0 || tokens[index + 1] == NULL){
+                // Missing parameter either right or left
+                // Print red and reset color after
+                printf("\e[31mMalformed direction or pipe. Command failed to be called, please fix.\e[0m\n");
+                return false;
+            }
+        }
+        index++;
+    }
+    return true;
+}
