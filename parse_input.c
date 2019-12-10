@@ -11,6 +11,23 @@
  */
 void sterialize_input(char *input) {
     input[(strchr(input, '\n') - input)] = '\0';
+
+    // make sure quotes are balanced
+    u_int length = strlen(input);
+    u_int index = 0;
+    int counter = 0;
+    for(; index < length; index++){
+        if(input[index] == '"'){
+            if(index == 0 || input[index - 1] != '\\'){
+                counter++;
+            }
+        }
+    }
+    if(counter % 2 == 1){
+        // Not balanced
+        printf("\e[31mBalance your quotes. Command failed to be called, please fix.\e[0m\n");
+        input[0] = '\0';
+    }
 }
 
 unsigned int count_occurance(char *string, char character){

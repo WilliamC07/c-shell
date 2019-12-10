@@ -50,6 +50,9 @@ int main() {
             exit(0);
         }
         sterialize_input(input);
+        if(input[0] == '\0'){
+            continue;
+        }
         char ** commands = get_commands(input);
         run_commands(commands);
     }
