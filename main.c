@@ -43,16 +43,13 @@ int main() {
         printf("\e[34m%s\n", cwd);
         printf("$\e[m ");
 
-        char result = fgets(input, sizeof(input), stdin);
+        char *result = fgets(input, sizeof(input), stdin);
         if(result == NULL){
             // Given End Of File (Control D)
             printf("\n"); // Flush the dollar sign from previous printf
             exit(0);
         }
         sterialize_input(input);
-        if(input[0] == '\0'){
-            continue;
-        }
         char ** commands = get_commands(input);
         run_commands(commands);
     }

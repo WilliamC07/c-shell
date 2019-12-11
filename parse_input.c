@@ -64,57 +64,52 @@ char **get_commands(char *input){
     // Add 2: to make last pointer NULL to show there are no more commands and
     //        at least two space if the user enters one command (no semicolon)
     char **commands = calloc(count_occurance(input, ';') + 2, sizeof(char *));
-    int command_start_index;  // The index of input in which the current command starts at
-    int command_counter = 0;  // Keep track of how many commands were given so far
-    bool in_quotes = false;
+    u_int command_index = 0;
 
-    // Find the index of the start of the first command
-    // In bash and zsh (not sure about sh), leading space means don't store in history. This shell doesn't implement this feature
-    int index = 0;
-    while(input[index] == ' ' || input[index] == ';'){
-        index++;
-    }
-    command_start_index = index;
-
-    while(true){
-        if(input[index] == '"') {
-            if(index != 0 && input[index - 1] != '\\'){
-                // The user entered a quote but not an escaped quote (\")
-                in_quotes = !in_quotes;
-            }
+    u_int index = 0;
+    while(input[index] != '\0'){
+        if(input[index] == ' '){
+            // Ignore white spaces
             index++;
-        }else if(!in_quotes && (input[index] == ';' || input[index] == '\0')){
-            // The user finished entering a command
+        }else if(input[index] == '\0') {
+            return commands;
+        }else{
+            // all characters other than spaces are considered the start of a command
+            u_int command_start_index = index;
 
-            // Store the start of the current command
-            commands[command_counter++] = input + command_start_index;
-
-            if(input[index] == '\0'){
-                // End of input (also the end of the last command)
-                commands[command_counter] = NULL;
-                return commands;
-            }else{
-                // End the command
-                input[index] = '\0';
-                // make sure the command does not have trailing spaces
-                int end_index = index;
-                while(input[--end_index] == ' '){
-                    input[end_index] = '\0';
-                }
-
-                // Move the index to the next command
-                index++;
-                // Do not have the next command lead with semicolon or spaces
-                // Prevents us from thinking a space or a semicolon is a command
-                while(input[index] == ';' || input[index] == ' '){
+            // Semicolon not in quotes signals the end of the command
+            while(input[index] != ';' && input[index] != '\0'){
+                // If we find a quote character, skip to end of quotes
+                if(input[index] == '"'){
+                    // Move past quote character so we can find last quote character that wasn't escaped
+                    index++;
+                    while(input[index] != '"' && input[index - 1] != '\\'){
+                        index++;
+                    }
+                }else{
                     index++;
                 }
-                command_start_index = index;
             }
-        }else{
-            index++;
+            // 0123456789
+            // ; echo "a"
+            // Add two: one for end of string character and one for length of [a, b] = b - a + 1
+            u_int length_command = index - command_start_index + 2;
+            if(length_command != 2){
+                // Not all white spaces, so command was given
+                char *command = calloc(length_command, sizeof(char));
+                strncpy(command, input + command_start_index, length_command);
+                commands[command_index++] = command;
+            }
+
+            if(input[index] == ';'){
+                index++;
+            }else if(input[index] == '\0'){
+                return commands;
+            }
         }
     }
+
+    return commands;
 }
 
 /**
