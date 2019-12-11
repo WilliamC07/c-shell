@@ -36,7 +36,7 @@ void run_command(char **tokens){
 
             if(input != NULL){
                 errno = 0;
-                fd_input = open("files.txt", O_RDONLY);
+                fd_input = open(input, O_RDONLY);
                 if(errno){
                     printf("\e[31m%s\e[0m\n", strerror(errno));
                 }
