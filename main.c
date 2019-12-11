@@ -40,13 +40,11 @@ int main() {
         char input[500] = {'\0'};
         char cwd[PATH_MAX];
         getcwd(cwd, sizeof(cwd));
-        printf("\e[34m%s\n", cwd);
-        printf("$\e[m ");
+        printf("\e[34m%s $\e[m ", cwd);
 
         char *result = fgets(input, sizeof(input), stdin);
         if(result == NULL){
             // Given End Of File (Control D)
-            printf("\n"); // Flush the dollar sign from previous printf
             exit(0);
         }
         sterialize_input(input);
