@@ -118,6 +118,7 @@ char **get_commands(char *input){
 }
 
 /**
+ * Returns allocated memory of quote at the given index.
  *
  * @param command
  * @param start_index Pointer to the start of the quote character
@@ -167,9 +168,22 @@ char * parse_quote_token(char *quote_start, u_int *char_parsed){
     return token;
 }
 
+/**
+ * Returns allocated memory of argument at the given index.
+ *
+ * Things that ends a token (command line argument):
+ * - White space
+ * - End of string character
+ * - Redirecting (>, <)
+ * - Piping (|)
+ * @param token_start
+ * @param char_parsed
+ * @return
+ */
 char * parse_regular_token(char *token_start, u_int *char_parsed){
     u_int length = 1;
-    while(token_start[length] != ' ' && token_start[length] != '\0'){
+    while(token_start[length] != ' ' && token_start[length] != '\0' &&
+        token_start[length] != '>' && token_start[length] != '<' && token_start[length] != '|'){
         length++;
     }
 
