@@ -19,7 +19,9 @@ void sterialize_input(char *input) {
     int counter = 0;
     for(; index < length; index++){
         if(input[index] == '"'){
-            if(index == 0 || input[index - 1] != '\\'){
+            // only not considered a quote when it is escaped
+            // \\" is not escaped, but \" is
+            if(!(input[index - 1] == '\\' && input[index - 2] != '\\')){
                 counter++;
             }
         }
@@ -80,15 +82,14 @@ char **get_commands(char *input){
             // Semicolon not in quotes signals the end of the command
             while(input[index] != ';' && input[index] != '\0'){
                 // If we find a quote character, skip to end of quotes
-                if(input[index] == '"'){
+                if(input[index] == '"') {
                     // Move past quote character so we can find last quote character that wasn't escaped
                     index++;
-                    while(input[index] != '"' && input[index - 1] != '\\'){
+                    while (!(input[index] == '"' && input[index - 1] != '\\')) {
                         index++;
                     }
-                }else{
-                    index++;
                 }
+                index++;
             }
             // 0123456789
             // ; echo "a"
@@ -136,10 +137,10 @@ char * parse_quote_token(char *quote_start, u_int *char_parsed){
     u_int index_token = 0;
     u_int offset = 1;
     while(offset != length){
-        if(quote_start[offset] == '\\'){
+        if(quote_start[offset] == '\\' && quote_start[offset - 1] != '\\'){
             switch(quote_start[offset + 1]){
-                case '\\':
-                    token[index_token++] = '\\';
+                case '\t':
+                    token[index_token++] = '\t';
                     break;
                 case 'n':
                     token[index_token++] = '\n';

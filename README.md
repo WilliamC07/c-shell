@@ -5,7 +5,6 @@ In bash and zsh, starting a command with a space means it will not be stored in 
 
 The only escape character supported by strings is:
     \" -- Escapes quotes
-    \\ -- Escapes \
     \n -- New line character
 All others will just show the "\" and following character (ex. "\t" --> "\t")
 
@@ -22,6 +21,8 @@ echo \""" --> \"""
 
 Entered quotes must be balanced.  
 doing echo \" will print "\"" and not "  
+
+I did not support chaining pips  
 
 Special operation supports:  
 ">", "<", and "|"  
