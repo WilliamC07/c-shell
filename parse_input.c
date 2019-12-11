@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <ntsid.h>
 
 /**
  * Removes the end of line character ('\n') from the user input. This should be run before working.
@@ -269,14 +270,52 @@ char * get_standard_output(char **tokens){
         // No ">"
         return NULL;
     }
-    return tokens[output_token_index + 1];
+
+    // Get given file name
+    u_int file_name_length = strlen(tokens[output_token_index + 1]) + 1;  // add 1 for end of string character
+    char *file_name = calloc(file_name_length, sizeof(char));
+    strcpy(file_name, tokens[output_token_index + 1]);
+
+    // Free the tokens that we read from
+    free(tokens[output_token_index]);
+    free(tokens[output_token_index + 1]);
+
+    // Shift all future tokens over
+    u_int index = output_token_index;
+    while(tokens[index + 2] != NULL){
+        tokens[index] = tokens[index + 2];
+        index++;
+    }
+    // End the list of tokens
+    tokens[index] = NULL;
+
+    return file_name;
 }
 
 char * get_standard_input(char **tokens){
-    u_int output_token_index = find_token_index(tokens, ">");
-    if(output_token_index == -1){
+    u_int input_token_index = find_token_index(tokens, "<");
+    if(input_token_index == -1){
         // No ">"
         return NULL;
     }
-    return tokens[output_token_index + 1];
+
+    // Get given file name
+    u_int file_name_length = strlen(tokens[input_token_index + 1]) + 1;  // add 1 for end of string character
+    char *file_name = calloc(file_name_length, sizeof(char));
+    strcpy(file_name, tokens[input_token_index + 1]);
+
+    // Free the tokens that we read from
+    free(tokens[input_token_index]);
+    free(tokens[input_token_index + 1]);
+
+    // Shift all future tokens over
+    u_int index = input_token_index;
+    while(tokens[index + 2] != NULL){
+        tokens[index] = tokens[index + 2];
+        index++;
+    }
+    // End the list of tokens
+    tokens[index] = NULL;
+
+    return file_name;
 }

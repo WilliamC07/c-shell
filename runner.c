@@ -16,37 +16,44 @@ void run_command(char **tokens){
     }else{
         int pid = fork();
 
-        // Handle redirection
-        char *output = get_standard_output(tokens);
-        u_int fd_output = -1;
-        char *input = get_standard_input(tokens);
-        u_int fd_input = -1;
-
-        if(output != NULL){
-            fd_output = open(output, O_CREAT | O_WRONLY, 0644);
-        }
-
-        if(input != NULL){
-            fd_input = open(output, O_RDONLY);
-            if(errno){
-                printf("\e[31m%s\e[0m\n", strerror(errno));
-            }
-        }
-
         if(pid == 0){
             // Child fork
 
-            if(fd_input != -1){
-                dup2(fd_input, STDIN_FILENO);
+            // Handle redirection
+            char *output = get_standard_output(tokens);
+            u_int fd_output = -1;
+            char *input = get_standard_input(tokens);
+            u_int fd_input = -1;
+
+            if(output != NULL){
+                errno = 0;
+                fd_output = open(output, O_CREAT | O_WRONLY, 0644);
+                if(errno){
+                    printf("\e[31m%s\e[0m\n", strerror(errno));
+                }
+                free(output);
             }
 
-            if(fd_output != -1){
-                dup2(fd_output, STDOUT_FILENO);
+            if(input != NULL){
+                errno = 0;
+                fd_input = open("files.txt", O_RDONLY);
+                if(errno){
+                    printf("\e[31m%s\e[0m\n", strerror(errno));
+                }
+                free(input);
             }
+
+            if(fd_input != -1) dup2(fd_input, STDIN_FILENO);
+            if(fd_output != -1) dup2(fd_output, STDOUT_FILENO);
 
             if(execvp(tokens[0], tokens) == -1){
-                printf("Error: %s\n", strerror(errno));
+                printf("\e[31mError running %s: %s\e[0m\n", tokens[0], strerror(errno));
+                if(fd_input) close(fd_input);
+                if(fd_output) close(fd_output);
                 exit(1);
+            }else{
+                if(fd_input) close(fd_input);
+                if(fd_output) close(fd_output);
             }
         }else{
             // Parent fork
