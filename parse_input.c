@@ -70,8 +70,8 @@ char **get_commands(char *input){
 
     u_int index = 0;
     while(input[index] != '\0'){
-        if(input[index] == ' '){
-            // Ignore white spaces
+        if(input[index] == ' ' || input[index] == ';'){
+            // Ignore white spaces and lone semicolon
             index++;
         }else if(input[index] == '\0') {
             return commands;
@@ -91,10 +91,15 @@ char **get_commands(char *input){
                 }
                 index++;
             }
-            // 0123456789
-            // ; echo "a"
+
+            // Minus one to not include semicolon or end of string character in command
+            int end_index = index;
+            // Remove trailing white spaces
+            while(end_index != 0 && (input[end_index] == ' ' || input[end_index] == '\0' || input[end_index] == ';')){
+                end_index--;
+            }
             // Add two: one for end of string character and one for length of [a, b] = b - a + 1
-            u_int length_command = index - command_start_index + 2;
+            u_int length_command = end_index - command_start_index + 2;
             if(length_command != 2){
                 // Not all white spaces, so command was given
                 char *command = calloc(length_command, sizeof(char));

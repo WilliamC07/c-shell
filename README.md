@@ -28,3 +28,5 @@ Special operation supports:
 ">", "<", and "|"  
 We do not support:  
 Anything not listed above like ">>" or "<<"
+
+redirecting a file to this shell might have missing commands printing out (still runs, you just don't see the program on stdout, aka your terminal).

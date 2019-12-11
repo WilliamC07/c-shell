@@ -9,6 +9,7 @@
 
 void run_command(char **tokens){
     if(strcmp(tokens[0], "cd") == 0){
+        errno = 0;
         chdir(tokens[1]);
         if(errno){
             printf("%s\n", strerror(errno));

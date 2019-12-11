@@ -41,6 +41,8 @@ int main() {
         char cwd[PATH_MAX];
         getcwd(cwd, sizeof(cwd));
         printf("\e[34m%s $\e[m ", cwd);
+        // force print the cwd and dollar sign or else redirecting to this program will spam all output at the very end
+        fflush(stdout);
 
         char *result = fgets(input, sizeof(input), stdin);
         if(result == NULL){
