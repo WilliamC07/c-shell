@@ -8,3 +8,7 @@ char **get_commands(char *input);
 char ** tokenize_command(char *command);
 
 bool redirection_parameters_given(char ** tokens);
+
+char * get_standard_output(char **tokens);
+
+char * get_standard_input(char **tokens);

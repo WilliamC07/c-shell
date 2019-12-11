@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <ntsid.h>
 
 /**
  * Removes the end of line character ('\n') from the user input. This should be run before working.
@@ -117,6 +118,7 @@ char **get_commands(char *input){
 }
 
 /**
+ * Returns allocated memory of quote at the given index.
  *
  * @param command
  * @param start_index Pointer to the start of the quote character
@@ -166,9 +168,22 @@ char * parse_quote_token(char *quote_start, u_int *char_parsed){
     return token;
 }
 
+/**
+ * Returns allocated memory of argument at the given index.
+ *
+ * Things that ends a token (command line argument):
+ * - White space
+ * - End of string character
+ * - Redirecting (>, <)
+ * - Piping (|)
+ * @param token_start
+ * @param char_parsed
+ * @return
+ */
 char * parse_regular_token(char *token_start, u_int *char_parsed){
     u_int length = 1;
-    while(token_start[length] != ' ' && token_start[length] != '\0'){
+    while(token_start[length] != ' ' && token_start[length] != '\0' &&
+        token_start[length] != '>' && token_start[length] != '<' && token_start[length] != '|'){
         length++;
     }
 
@@ -250,4 +265,71 @@ bool redirection_parameters_given(char ** tokens){
         index++;
     }
     return true;
+}
+
+u_int find_token_index(char **tokens, char *needle){
+    u_int index = 0;
+    while(tokens[index] != NULL){
+        if(strcmp(tokens[index], needle) == 0){
+            return index;
+        }
+        index++;
+    }
+    return -1;
+}
+
+char * get_standard_output(char **tokens){
+    u_int output_token_index = find_token_index(tokens, ">");
+    if(output_token_index == -1){
+        // No ">"
+        return NULL;
+    }
+
+    // Get given file name
+    u_int file_name_length = strlen(tokens[output_token_index + 1]) + 1;  // add 1 for end of string character
+    char *file_name = calloc(file_name_length, sizeof(char));
+    strcpy(file_name, tokens[output_token_index + 1]);
+
+    // Free the tokens that we read from
+    free(tokens[output_token_index]);
+    free(tokens[output_token_index + 1]);
+
+    // Shift all future tokens over
+    u_int index = output_token_index;
+    while(tokens[index + 2] != NULL){
+        tokens[index] = tokens[index + 2];
+        index++;
+    }
+    // End the list of tokens
+    tokens[index] = NULL;
+
+    return file_name;
+}
+
+char * get_standard_input(char **tokens){
+    u_int input_token_index = find_token_index(tokens, "<");
+    if(input_token_index == -1){
+        // No ">"
+        return NULL;
+    }
+
+    // Get given file name
+    u_int file_name_length = strlen(tokens[input_token_index + 1]) + 1;  // add 1 for end of string character
+    char *file_name = calloc(file_name_length, sizeof(char));
+    strcpy(file_name, tokens[input_token_index + 1]);
+
+    // Free the tokens that we read from
+    free(tokens[input_token_index]);
+    free(tokens[input_token_index + 1]);
+
+    // Shift all future tokens over
+    u_int index = input_token_index;
+    while(tokens[index + 2] != NULL){
+        tokens[index] = tokens[index + 2];
+        index++;
+    }
+    // End the list of tokens
+    tokens[index] = NULL;
+
+    return file_name;
 }
