@@ -19,6 +19,9 @@ echo "\t --> "\t
 echo "\\t" --> \\t  
 echo \""" --> \"""  
 
+Having escaped characters that is not in an double quoted argument will not be escaped.  
+Ex: echo \t"asd" --> \t"asd"  
+
 Entered quotes must be balanced.  
 doing echo \" will print "\"" and not "  
 

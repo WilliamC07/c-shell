@@ -99,7 +99,7 @@ char **get_commands(char *input){
                 end_index--;
             }
             // Add two: one for end of string character and one for length of [a, b] = b - a + 1
-            u_int length_command = end_index - command_start_index + 2;
+            u_int length_command = end_index - command_start_index + 1;
             if(length_command != 2){
                 // Not all white spaces, so command was given
                 char *command = calloc(length_command, sizeof(char));

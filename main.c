@@ -51,6 +51,7 @@ int main() {
         }
         sterialize_input(input);
         char ** commands = get_commands(input);
+
         run_commands(commands);
     }
     return 0;
