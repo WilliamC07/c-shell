@@ -6,61 +6,93 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include "parse_input.h"
+#define PIPE_READ 0
+#define PIPE_WRITE 1
 
 void run_command(char **tokens){
-    if(strcmp(tokens[0], "cd") == 0){
-        errno = 0;
-        chdir(tokens[1]);
-        if(errno){
-            printf("%s\n", strerror(errno));
-        }
-    }else{
-        int pid = fork();
+    char **tokens_to_run = tokens;
+    int read_from_pipe_fd = -1;
 
+    while(true) {
+        // redirects and pipe
+        char *output_file = get_standard_output(tokens_to_run);
+        int fd_output = -1;
+        char *input_file = get_standard_input(tokens_to_run);
+        int fd_input = -1;
+
+        int pipe_index = find_pipe(tokens_to_run);
+        int pipe_file_descriptors[2] = {-1, -1};
+        if(pipe_index != -1){
+            // Pipe
+            if(pipe(pipe_file_descriptors) == -1){
+                printf("\e[31mFailed to pipe: %s\e[0m\n", strerror(errno));
+
+            }
+        }
+
+        // Open redirect files
+        if(output_file != NULL){
+            errno = 0;
+            fd_output = open(output_file, O_CREAT | O_WRONLY, 0644);
+            if(errno){
+                printf("\e[31m%s\e[0m\n", strerror(errno));
+            }
+            free(output_file);
+        }
+        if(input_file != NULL){
+            errno = 0;
+            fd_input = open(input_file, O_RDONLY);
+            if(errno){
+                printf("\e[31m%s\e[0m\n", strerror(errno));
+            }
+            free(input_file);
+        }
+
+        // We do not support both output to file and pipe
+        if(output_file != NULL && pipe_file_descriptors[PIPE_WRITE] != -1){
+            printf("\e[31mCannot pipe and redirect to file. Command quit!\e[0m\n");
+            return;
+        }
+
+        int pid = fork();
         if(pid == 0){
             // Child fork
 
-            // Handle redirection
-            char *output = get_standard_output(tokens);
-            u_int fd_output = -1;
-            char *input = get_standard_input(tokens);
-            u_int fd_input = -1;
+            // Get source from pipe
+            if (read_from_pipe_fd != -1) dup2(read_from_pipe_fd, STDIN_FILENO);
+            if (pipe_file_descriptors[PIPE_WRITE] != 0) dup2(pipe_file_descriptors[PIPE_WRITE], STDOUT_FILENO);
+            // Redirect input
+            if (fd_input != -1) dup2(fd_input, STDIN_FILENO);
+            // Redirect output
+            if (fd_output != -1) dup2(fd_output, STDOUT_FILENO);
 
-            if(output != NULL){
-                errno = 0;
-                fd_output = open(output, O_CREAT | O_WRONLY, 0644);
-                if(errno){
-                    printf("\e[31m%s\e[0m\n", strerror(errno));
-                }
-                free(output);
-            }
-
-            if(input != NULL){
-                errno = 0;
-                fd_input = open(input, O_RDONLY);
-                if(errno){
-                    printf("\e[31m%s\e[0m\n", strerror(errno));
-                }
-                free(input);
-            }
-
-            if(fd_input != -1) dup2(fd_input, STDIN_FILENO);
-            if(fd_output != -1) dup2(fd_output, STDOUT_FILENO);
-
-            if(execvp(tokens[0], tokens) == -1){
-                printf("\e[31mError running %s: %s\e[0m\n", tokens[0], strerror(errno));
+            // Run
+            if(execvp(tokens_to_run[0], tokens_to_run) == -1){
+                printf("\e[31mError running %s: %s\e[0m\n", tokens_to_run[0], strerror(errno));
                 if(fd_input) close(fd_input);
                 if(fd_output) close(fd_output);
                 exit(1);
-            }else{
-                if(fd_input) close(fd_input);
-                if(fd_output) close(fd_output);
             }
         }else{
-            // Parent fork
+            // parent
+            // close pipe
+            close(pipe_file_descriptors[PIPE_WRITE]);
+            if(read_from_pipe_fd != -1){
+                close(read_from_pipe_fd);
+            }
+
             int status;
             wait(&status);
+
+            // If there isn't a pipe symbol, that means no other command can run
+            if(pipe_index == -1){
+                break;
+            }
         }
+        // pipe was set, the next command needs to run using the pipe READ
+        read_from_pipe_fd = pipe_file_descriptors[PIPE_READ];
+        // Add 1 since the next command token is after the pipe
+        tokens_to_run = tokens + pipe_index + 1;
     }
 }
 
@@ -79,12 +111,20 @@ void run_commands(char **commands){
             free(tokens);
             free(commands);
             exit(0);
+        }else if(strcmp(tokens[0], "cd") == 0){
+            errno = 0;
+            chdir(tokens[1]);
+            if(errno){
+                printf("%s\n", strerror(errno));
+            }
+        }else{
+            // Run all other commands except "exit"
+            if(redirection_parameters_given(tokens)){
+
+                run_command(tokens);
+            }
         }
 
-        // Run all other commands except "exit"
-        if(redirection_parameters_given(tokens)){
-            run_command(tokens);
-        }
 
         // Clean up token memory for every command
         int token_index = 0;
