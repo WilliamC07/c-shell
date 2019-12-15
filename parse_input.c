@@ -99,12 +99,9 @@ char **get_commands(char *input){
             }
             // Add two: one for end of string character and one for length of [a, b] = b - a + 1
             u_int length_command = end_index - command_start_index + 1;
-            if(length_command != 2){
-                // Not all white spaces, so command was given
-                char *command = calloc(length_command + 1, sizeof(char));
-                strncpy(command, input + command_start_index, length_command);
-                commands[command_index++] = command;
-            }
+            char *command = calloc(length_command + 1, sizeof(char));
+            strncpy(command, input + command_start_index, length_command);
+            commands[command_index++] = command;
 
             if(input[index] == ';'){
                 index++;
