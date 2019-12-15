@@ -23,7 +23,9 @@ Having escaped characters that is not in an double quoted argument will not be e
 Ex: echo \t"asd" --> \t"asd"  
 
 Entered quotes must be balanced.  
-doing echo \" will print "\"" and not "  
+doing echo \" will print "\"" and not "
+
+Can read at most 499 characters including new line character  
 
 I did not support chaining pips  
 
