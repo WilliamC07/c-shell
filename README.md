@@ -35,4 +35,6 @@ Anything not listed above like ">>" or "<<"
 Cannot redirect thing into cd.  
 ```cd < file_with_directory``` does not work
 
+Every command must end with new line character so test file must end with new line character too.
+
 redirecting a file to this shell might have missing commands printing out (still runs, you just don't see the program on stdout, aka your terminal).

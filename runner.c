@@ -9,6 +9,15 @@
 #define PIPE_READ 0
 #define PIPE_WRITE 1
 
+void free_items(char **items){
+    int i = 0;
+    while(items[i] != NULL){
+        free(items[i]);
+        i++;
+    }
+    free(items);
+}
+
 void run_command(char **tokens){
     char **tokens_to_run = tokens;
     int read_from_pipe_fd = -1;
@@ -69,20 +78,25 @@ void run_command(char **tokens){
             // Run
             if(execvp(tokens_to_run[0], tokens_to_run) == -1){
                 printf("\e[31mError running %s: %s\e[0m\n", tokens_to_run[0], strerror(errno));
-                if(fd_input) close(fd_input);
-                if(fd_output) close(fd_output);
+                if(fd_input != -1) close(fd_input);
+                if(fd_output != -1) close(fd_output);
                 exit(1);
             }
         }else{
             // parent
             // close pipe
-            close(pipe_file_descriptors[PIPE_WRITE]);
+            if(pipe_index != -1) close(pipe_file_descriptors[PIPE_WRITE]);
             if(read_from_pipe_fd != -1){
                 close(read_from_pipe_fd);
             }
 
             int status;
             wait(&status);
+
+            int i = 0;
+            while(tokens_to_run[i] != NULL){
+                free(tokens_to_run[i++]);
+            }
 
             // If there isn't a pipe symbol, that means no other command can run
             if(pipe_index == -1){
@@ -104,12 +118,8 @@ void run_commands(char **commands){
 
         // Special case for exit because we have to clean up memory before quitting the program
         if(strcmp(tokens[0], "exit") == 0){
-            int token_index = 0;
-            while(tokens[token_index] != NULL){
-                free(tokens[token_index++]);
-            }
-            free(tokens);
-            free(commands);
+            free_items(tokens);
+            free_items(commands);
             exit(0);
         }else if(strcmp(tokens[0], "cd") == 0){
             errno = 0;
@@ -117,22 +127,15 @@ void run_commands(char **commands){
             if(errno){
                 printf("%s\n", strerror(errno));
             }
+            free_items(tokens);
         }else{
             // Run all other commands except "exit"
             if(redirection_parameters_given(tokens)){
-
                 run_command(tokens);
+                free(tokens);
             }
         }
-
-
-        // Clean up token memory for every command
-        int token_index = 0;
-        while(tokens[token_index] != NULL){
-            free(tokens[token_index++]);
-        }
-        free(tokens);
         command_index++;
     }
-    free(commands);
+    free_items(commands);
 }
