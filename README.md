@@ -23,7 +23,9 @@ Having escaped characters that is not in an double quoted argument will not be e
 Ex: echo \t"asd" --> \t"asd"  
 
 Entered quotes must be balanced.  
-doing echo \" will print "\"" and not "  
+doing echo \" will print "\"" and not "
+
+Can read at most 499 characters including new line character  
 
 I did not support chaining pips  
 
@@ -31,5 +33,10 @@ Special operation supports:
 ">", "<", and "|"  
 We do not support:  
 Anything not listed above like ">>" or "<<"
+
+Cannot redirect thing into cd.  
+```cd < file_with_directory``` does not work
+
+Every command must end with new line character so test file must end with new line character too.
 
 redirecting a file to this shell might have missing commands printing out (still runs, you just don't see the program on stdout, aka your terminal).

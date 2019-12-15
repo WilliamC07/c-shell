@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <ntsid.h>
 
 /**
  * Removes the end of line character ('\n') from the user input. This should be run before working.
@@ -102,7 +101,7 @@ char **get_commands(char *input){
             u_int length_command = end_index - command_start_index + 1;
             if(length_command != 2){
                 // Not all white spaces, so command was given
-                char *command = calloc(length_command, sizeof(char));
+                char *command = calloc(length_command + 1, sizeof(char));
                 strncpy(command, input + command_start_index, length_command);
                 commands[command_index++] = command;
             }
@@ -233,7 +232,7 @@ char ** tokenize_command(char *command){
             case '|': {
                 // These are special operational character, so they need to be its own token
                 // Since we will check the 0th index of every token for the above special characters, we don't need '\0'
-                char *token = malloc(1);
+                char *token = calloc(2, sizeof(char));
                 token[0] = command[command_index];
                 tokens[token_index++] = token;
                 command_index++;
@@ -281,7 +280,9 @@ u_int find_token_index(char **tokens, char *needle){
 
 char * get_standard_output(char **tokens){
     u_int output_token_index = find_token_index(tokens, ">");
-    if(output_token_index == -1){
+    int pipe_token_index = find_token_index(tokens, "|");
+    // Make sure there is a redirect and it is not for another command (after pipe command)
+    if(output_token_index == -1 || output_token_index > pipe_token_index){
         // No ">"
         return NULL;
     }
@@ -309,8 +310,10 @@ char * get_standard_output(char **tokens){
 
 char * get_standard_input(char **tokens){
     u_int input_token_index = find_token_index(tokens, "<");
-    if(input_token_index == -1){
-        // No ">"
+    int pipe_token_index = find_token_index(tokens, "|");
+    // Make sure there is a redirect and it is not for another command (after pipe command)
+    if(input_token_index == -1 || input_token_index > pipe_token_index){
+        // No "<"
         return NULL;
     }
 
@@ -333,4 +336,29 @@ char * get_standard_input(char **tokens){
     tokens[index] = NULL;
 
     return file_name;
+}
+
+/**
+ * Returns index of the pipe. -1 if none.
+ * Example:
+ *
+ * echo "asd" | wc
+ *
+ * This function will return 3 since wc is after the pipe.
+ *
+ * @param tokens
+ * @return
+ */
+int find_pipe(char ** tokens){
+    int pipe_token_index = find_token_index(tokens, "|");
+
+    if(pipe_token_index != -1){
+        // Free token for pipe
+        free(tokens[pipe_token_index]);
+
+        // Replace with NULL so execvp will know where the argument for the input shell command ends
+        tokens[pipe_token_index] = NULL;
+    }
+
+    return pipe_token_index;
 }
