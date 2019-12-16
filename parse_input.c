@@ -13,8 +13,8 @@ void sterialize_input(char *input) {
     input[(strchr(input, '\n') - input)] = '\0';
 
     // make sure quotes are balanced
-    u_int length = strlen(input);
-    u_int index = 0;
+    int length = strlen(input);
+    int index = 0;
     int counter = 0;
     for(; index < length; index++){
         if(input[index] == '"'){
@@ -65,9 +65,9 @@ char **get_commands(char *input){
     // Add 2: to make last pointer NULL to show there are no more commands and
     //        at least two space if the user enters one command (no semicolon)
     char **commands = calloc(count_occurance(input, ';') + 2, sizeof(char *));
-    u_int command_index = 0;
+    int command_index = 0;
 
-    u_int index = 0;
+    int index = 0;
     while(input[index] != '\0'){
         if(input[index] == ' ' || input[index] == ';'){
             // Ignore white spaces and lone semicolon
@@ -76,7 +76,7 @@ char **get_commands(char *input){
             return commands;
         }else{
             // all characters other than spaces are considered the start of a command
-            u_int command_start_index = index;
+            int command_start_index = index;
 
             // Semicolon not in quotes signals the end of the command
             while(input[index] != ';' && input[index] != '\0'){
@@ -98,13 +98,10 @@ char **get_commands(char *input){
                 end_index--;
             }
             // Add two: one for end of string character and one for length of [a, b] = b - a + 1
-            u_int length_command = end_index - command_start_index + 1;
-            if(length_command != 2){
-                // Not all white spaces, so command was given
-                char *command = calloc(length_command + 1, sizeof(char));
-                strncpy(command, input + command_start_index, length_command);
-                commands[command_index++] = command;
-            }
+            int length_command = end_index - command_start_index + 1;
+            char *command = calloc(length_command + 1, sizeof(char));
+            strncpy(command, input + command_start_index, length_command);
+            commands[command_index++] = command;
 
             if(input[index] == ';'){
                 index++;
@@ -124,11 +121,11 @@ char **get_commands(char *input){
  * @param start_index Pointer to the start of the quote character
  * @return
  */
-char * parse_quote_token(char *quote_start, u_int *char_parsed){
+char * parse_quote_token(char *quote_start, int *char_parsed){
     // Find length of the quote
     // We will consider backslash followed by character as two character when it really should just be 1 character since
     // we don't handle every escape character case
-    u_int length = 1;
+    int length = 1;
     while(quote_start[length] != '"' || quote_start[length - 1] == '\\'){
         length++;
     }
@@ -138,12 +135,12 @@ char * parse_quote_token(char *quote_start, u_int *char_parsed){
 
     // Do not minus 1 from offset because we want to replace the ending quote with a end of string character
     char *token = calloc(length, sizeof(char));
-    u_int index_token = 0;
-    u_int offset = 1;
+    int index_token = 0;
+    int offset = 1;
     while(offset != length){
         if(quote_start[offset] == '\\' && quote_start[offset - 1] != '\\'){
             switch(quote_start[offset + 1]){
-                case '\t':
+                case 't':
                     token[index_token++] = '\t';
                     break;
                 case 'n':
@@ -180,8 +177,8 @@ char * parse_quote_token(char *quote_start, u_int *char_parsed){
  * @param char_parsed
  * @return
  */
-char * parse_regular_token(char *token_start, u_int *char_parsed){
-    u_int length = 1;
+char * parse_regular_token(char *token_start, int *char_parsed){
+    int length = 1;
     while(token_start[length] != ' ' && token_start[length] != '\0' &&
         token_start[length] != '>' && token_start[length] != '<' && token_start[length] != '|'){
         length++;
@@ -204,17 +201,17 @@ char ** tokenize_command(char *command){
     // This may result in more tokens than there actually are because the characters we look for may be in quotes
     // Add 2 since last element in array must be NULL to denote end of arguments and there must be at least 1 argument
     // The following characters: ">", "<", and "|" are special operations and must be their own token
-    u_int amount_tokens = count_occurance(command, ' ') + count_occurance(command, '<') + count_occurance(command, '>') + count_occurance(command, '|') + 2;
+    int amount_tokens = count_occurance(command, ' ') + count_occurance(command, '<') + count_occurance(command, '>') + count_occurance(command, '|') + 2;
     char **tokens = calloc(amount_tokens + 1, sizeof(char *));
-    u_int token_index = 0;
-    u_int command_index = 0;
+    int token_index = 0;
+    int command_index = 0;
     while(command[command_index] != '\0'){
         switch(command[command_index]){
             case '"': {
                 // Double quotes represents one token
                 // It is assumed to be balanced
                 // User has entered a quote (but not an escaped quote), signaling the start of the quote token
-                u_int char_parsed;
+                int char_parsed;
                 char *token = parse_quote_token(command + command_index, &char_parsed);
                 tokens[token_index++] = token;
                 // We parsed the entire token, so move index over
@@ -240,7 +237,7 @@ char ** tokenize_command(char *command){
             }
             default: {
                 // Regular strings goes up to the white space signaling end of the token
-                u_int char_parsed;
+                int char_parsed;
                 char *token = parse_regular_token(command + command_index, &char_parsed);
                 tokens[token_index++] = token;
                 // Add 1 since we move past the last read character
@@ -267,8 +264,8 @@ bool redirection_parameters_given(char ** tokens){
     return true;
 }
 
-u_int find_token_index(char **tokens, char *needle){
-    u_int index = 0;
+int find_token_index(char **tokens, char *needle){
+    int index = 0;
     while(tokens[index] != NULL){
         if(strcmp(tokens[index], needle) == 0){
             return index;
@@ -279,7 +276,7 @@ u_int find_token_index(char **tokens, char *needle){
 }
 
 char * get_standard_output(char **tokens){
-    u_int output_token_index = find_token_index(tokens, ">");
+    int output_token_index = find_token_index(tokens, ">");
     int pipe_token_index = find_token_index(tokens, "|");
     // Make sure there is a redirect and it is not for another command (after pipe command)
     if(output_token_index == -1 || output_token_index > pipe_token_index){
@@ -288,7 +285,7 @@ char * get_standard_output(char **tokens){
     }
 
     // Get given file name
-    u_int file_name_length = strlen(tokens[output_token_index + 1]) + 1;  // add 1 for end of string character
+    int file_name_length = strlen(tokens[output_token_index + 1]) + 1;  // add 1 for end of string character
     char *file_name = calloc(file_name_length, sizeof(char));
     strcpy(file_name, tokens[output_token_index + 1]);
 
@@ -297,7 +294,7 @@ char * get_standard_output(char **tokens){
     free(tokens[output_token_index + 1]);
 
     // Shift all future tokens over
-    u_int index = output_token_index;
+    int index = output_token_index;
     while(tokens[index + 2] != NULL){
         tokens[index] = tokens[index + 2];
         index++;
@@ -309,7 +306,7 @@ char * get_standard_output(char **tokens){
 }
 
 char * get_standard_input(char **tokens){
-    u_int input_token_index = find_token_index(tokens, "<");
+    int input_token_index = find_token_index(tokens, "<");
     int pipe_token_index = find_token_index(tokens, "|");
     // Make sure there is a redirect and it is not for another command (after pipe command)
     if(input_token_index == -1 || input_token_index > pipe_token_index){
@@ -318,7 +315,7 @@ char * get_standard_input(char **tokens){
     }
 
     // Get given file name
-    u_int file_name_length = strlen(tokens[input_token_index + 1]) + 1;  // add 1 for end of string character
+    int file_name_length = strlen(tokens[input_token_index + 1]) + 1;  // add 1 for end of string character
     char *file_name = calloc(file_name_length, sizeof(char));
     strcpy(file_name, tokens[input_token_index + 1]);
 
@@ -327,7 +324,7 @@ char * get_standard_input(char **tokens){
     free(tokens[input_token_index + 1]);
 
     // Shift all future tokens over
-    u_int index = input_token_index;
+    int index = input_token_index;
     while(tokens[index + 2] != NULL){
         tokens[index] = tokens[index + 2];
         index++;
