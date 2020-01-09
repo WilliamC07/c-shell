@@ -279,7 +279,7 @@ char * get_standard_output(char **tokens){
     int output_token_index = find_token_index(tokens, ">");
     int pipe_token_index = find_token_index(tokens, "|");
     // Make sure there is a redirect and it is not for another command (after pipe command)
-    if(output_token_index == -1 || output_token_index > pipe_token_index){
+    if(output_token_index == -1){
         // No ">"
         return NULL;
     }
@@ -309,7 +309,7 @@ char * get_standard_input(char **tokens){
     int input_token_index = find_token_index(tokens, "<");
     int pipe_token_index = find_token_index(tokens, "|");
     // Make sure there is a redirect and it is not for another command (after pipe command)
-    if(input_token_index == -1 || input_token_index > pipe_token_index){
+    if(input_token_index == -1){
         // No "<"
         return NULL;
     }
